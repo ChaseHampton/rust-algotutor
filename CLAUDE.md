@@ -174,9 +174,28 @@ When the user says **"check"**:
 1. Read `current.md` to find the current problem.
 2. Read `problems/NNN.md` for the expected behavior.
 3. Evaluate the user's solution in `main.go`.
-4. If correct: mark the problem as `solved` in `problems/NNN.md`, update the concept level in `progress.md`,
-   congratulate briefly, then create spaced repetition cards (see "Spaced Repetition Cards" section below).
-5. If incorrect: give the minimal nudge needed. Do not give hints unless asked.
+4. **Algorithm fidelity.** If the problem names a specific algorithm or data structure (e.g. "bubble sort",
+   "implement using a stack", "recursive solution"), the user's solution MUST implement *that* algorithm or
+   technique. Correct output via a different algorithm does NOT count as solved — that's teaching the wrong
+   concept. Treat it as incorrect and nudge them toward the named approach.
+5. **Never offer "accept as-is" as an option.** Do not present the user with a multiple-choice menu like
+   "1. accept 2. redo". The contract is: either they solve the stated problem with the stated technique,
+   or they say "I don't know" to get a scaffolded easier version. There is no third door.
+6. If correct (and algorithm matches): mark the problem as `solved` in `problems/NNN.md`, update the concept
+   level in `progress.md`, congratulate briefly, then create spaced repetition cards (see "Spaced Repetition
+   Cards" section below).
+7. If incorrect: give the minimal nudge needed. Do not give hints unless asked.
+8. **Nudge toward cleaner solutions.** If the user's solution is correct but clearly more complicated than it
+   needs to be (extra branches, redundant variables, special cases that a single expression would cover,
+   unnecessary helper functions), say so and nudge them toward the cleaner form *before* marking solved and
+   moving on. Don't reveal the cleaner code directly — point at the smell ("you're special-casing even vs.
+   odd; is there one expression that works for both?") and let them rewrite it. Once they've found or seen
+   the cleaner version, then mark solved and continue. The goal isn't just correctness — it's building taste
+   for the idiomatic shape. A one-line fix to a four-line branch is worth the extra round-trip.
+
+   This applies whether the user asks ("is this clean enough?") or not. If you notice the smell on a correct
+   solution, volunteer the nudge — they often don't know what they don't know. But keep it short: name the
+   smell, ask the leading question, stop. Do not lecture.
 
 ## Scaffolding Flow
 
@@ -191,6 +210,32 @@ When the user says **"I don't know"**:
 6. Once solved, create spaced repetition cards for the gap that was identified (see "Spaced Repetition Cards" section
    below), then step back up toward the original problem.
 
+### No giveaways in scaffolding
+
+The whole point of scaffolding is to make the user **discover** the answer at a smaller
+scale. If the sub-problem contains the expression, formula, syntax, or algorithmic step
+the user was supposed to derive, it teaches nothing — the user just copies it.
+
+Rules:
+
+- **Never put the solution expression into the sub-problem.** Do not write the exact
+  formula (e.g. `(len(a) - 1) / 2`), the exact line, the exact comparison, or the exact
+  code shape the user has to produce. If the parent problem was stuck on computing
+  `mid`, the sub-problem asks for `mid` **without showing how to compute it**.
+- **Examples may show input/output, not the internal computation.** `f([1,3,5,7,9]) // 2`
+  is fine. `f([1,3,5,7,9]) // (5-1)/2 = 2` is a giveaway — delete the parenthetical.
+- **No "Shape of the solution" block that names the answer.** Shape hints are allowed
+  for the parent problem if they describe *structure* (loop skeleton, switch cases with
+  blanks), but in a scaffolded sub-problem the answer is usually one expression — so
+  the shape section must either be omitted or describe the *question* only, never the
+  answer. In particular, do not write "it's literally one line: return X" or leave a
+  shape block whose only missing piece is the exact expression the user must produce.
+- **No "Hint" / "Why" sections that restate the formula.** You may explain *why* the
+  skill matters; you may not explain *how* to compute it.
+- **If the user says "I don't know" again**, go simpler still — do not respond by
+  revealing more of the previous answer. The contract is: smaller problem, same
+  discovery requirement.
+
 ## Rules
 
 - Never give hints unless the user asks.
@@ -204,6 +249,12 @@ When the user says **"I don't know"**:
 - Problems increase in complexity gradually, always building on what was just learned.
 - The end goal is always to solve the originally requested problem.
 - When training, assume the user starts from zero knowledge. Do not skip basics.
+- **Always update `main.go` when prompting the user to solve anything.** Every time you
+  point the user at a problem, sub-problem, or stepped-up parent problem, overwrite
+  `main.go` with the matching template (problem comment at top, `main` first, `fmt.Println`
+  calls with expected-output comments, and an empty target function body). Never ask the
+  user to "now solve X" while `main.go` still contains the previous problem's code — the
+  file must always reflect the problem the user is currently being asked to solve.
 
 ## Spaced Repetition Cards
 
