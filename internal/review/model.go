@@ -117,6 +117,8 @@ func (m Model) updateWelcome(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 func (m Model) updateFront(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
+	case "esc":
+		return m, tea.Quit
 	case "tab":
 		m.userAnswer = m.textarea.Value()
 		m.screen = screenBack
@@ -129,6 +131,11 @@ func (m Model) updateFront(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) updateBack(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "esc", "q":
+		return m, tea.Quit
+	}
+
 	var rating fsrs.Rating
 	switch msg.String() {
 	case "1":

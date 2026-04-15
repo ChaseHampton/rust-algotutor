@@ -10,6 +10,7 @@ var (
 	mutedColor   = lipgloss.Color("241")
 	brightColor  = lipgloss.Color("255")
 	easyColor    = lipgloss.Color("117")
+	codeColor    = lipgloss.Color("215")
 
 	titleStyle = lipgloss.NewStyle().
 			Bold(true).
@@ -37,6 +38,10 @@ var (
 
 	answerStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("252"))
+
+	codeStyle = lipgloss.NewStyle().
+			Foreground(codeColor).
+			Bold(true)
 
 	dividerStyle = lipgloss.NewStyle().
 			Foreground(mutedColor)

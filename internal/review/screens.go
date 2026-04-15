@@ -68,7 +68,7 @@ func (m Model) viewFront() string {
 		mutedStyle.Render(fmt.Sprintf("%d / %d", m.current+1, total)),
 	)
 
-	question := questionStyle.Render(card.Front)
+	question := renderInline(card.Front, questionStyle, codeStyle)
 	answerLabel := mutedStyle.Render("Your answer:")
 	box := cardStyle.Width(58).Render(
 		"\n" + question + "\n\n" +
@@ -78,7 +78,7 @@ func (m Model) viewFront() string {
 
 	progress := m.renderProgress(m.current, total, 50)
 
-	hint := mutedStyle.Render("Tab to reveal")
+	hint := mutedStyle.Render("Tab to reveal  ·  Esc to quit")
 
 	return m.center(
 		header + "\n\n" +
@@ -98,7 +98,7 @@ func (m Model) viewBack() string {
 		mutedStyle.Render(fmt.Sprintf("%d / %d", m.current+1, total)),
 	)
 
-	question := questionStyle.Render(card.Front)
+	question := renderInline(card.Front, questionStyle, codeStyle)
 	divider := dividerStyle.Render(strings.Repeat("─", 50))
 
 	var answerSection string
@@ -106,10 +106,10 @@ func (m Model) viewBack() string {
 		userLabel := mutedStyle.Render("Your answer:")
 		userAns := answerStyle.Render(m.userAnswer)
 		correctLabel := mutedStyle.Render("Correct answer:")
-		correctAns := answerStyle.Render(card.Back)
+		correctAns := renderInline(card.Back, answerStyle, codeStyle)
 		answerSection = userLabel + "\n" + userAns + "\n\n" + correctLabel + "\n" + correctAns
 	} else {
-		correctAns := answerStyle.Render(card.Back)
+		correctAns := renderInline(card.Back, answerStyle, codeStyle)
 		answerSection = correctAns
 	}
 
@@ -130,12 +130,14 @@ func (m Model) viewBack() string {
 		"    ",
 		easyStyle.Render("4 Easy"),
 	)
+	quitHint := mutedStyle.Render("Esc to quit")
 
 	return m.center(
 		header + "\n\n" +
 			box + "\n\n" +
 			"  " + progress + "\n\n" +
-			lipgloss.PlaceHorizontal(58, lipgloss.Center, ratings),
+			lipgloss.PlaceHorizontal(58, lipgloss.Center, ratings) + "\n" +
+			lipgloss.PlaceHorizontal(58, lipgloss.Center, quitHint),
 	)
 }
 
@@ -197,6 +199,19 @@ func bar(value, maxVal, width int) string {
 	filled := (value * width) / maxVal
 	empty := width - filled
 	return strings.Repeat("█", filled) + strings.Repeat("░", empty)
+}
+
+func renderInline(s string, base, code lipgloss.Style) string {
+	parts := strings.Split(s, "`")
+	var b strings.Builder
+	for i, p := range parts {
+		if i%2 == 1 && i < len(parts)-1 {
+			b.WriteString(code.Render(p))
+		} else {
+			b.WriteString(base.Render(p))
+		}
+	}
+	return b.String()
 }
 
 func sortedKeys(m map[string]int) []string {
