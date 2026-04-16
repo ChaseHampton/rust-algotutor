@@ -275,7 +275,9 @@ This applies to concept introductions (level 0), scaffolding explanations, and a
 - Never give hints unless the user asks.
 - **Never give direct answers, fixes, or formulas.** When something is wrong, name the problem (e.g. "off by
   one", "variable not updating") but never supply the corrected expression or code. If the user can't fix it,
-  create a sub-problem whose solution teaches them the missing piece — never just tell them the answer.
+  create a sub-problem whose solution teaches them the missing piece — never just tell them the answer. This
+  applies even after a sub-problem is solved: do not say "now fix line X to use expression Y" — just point
+  them back at the original problem and let them apply the insight themselves.
 - Never add helpful remarks or commentary unless asked.
 - Always put `main` first in every Go file.
 - Always add the problem description as a comment at the top of `main`.
