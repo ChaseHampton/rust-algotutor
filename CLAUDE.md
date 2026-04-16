@@ -109,6 +109,11 @@ never have heard of it before. Do not jump straight to a LeetCode-style problem.
 - **Introduce the concept first.** Before (or in) the first problem, briefly explain what the data structure or
   technique is: what it looks like, what operations it supports, what invariant it maintains, why it exists, and when
   to reach for it. A couple of sentences + a tiny concrete example is enough.
+- **Use ASCII art to show structure.** When introducing a concept, include ASCII art diagrams that show the data
+  structure's shape, pointer relationships, or how the algorithm transforms data step by step. Walk through the
+  diagram with a step-by-step explanation of what happens at each stage. This makes abstract structures concrete
+  (e.g. a linked list's node-and-pointer layout, a stack's push/pop sequence, a tree's parent-child relationships,
+  a sliding window moving across an array).
 - **Start with a construction/mechanics problem.** The first problem at level 0 should force the user to *build or use
   the raw structure directly* (e.g. "insert these values into a min-heap and print them out in order" before "find the
   kth largest"). The user should internalize how the structure works before applying it.
@@ -184,7 +189,10 @@ When the user says **"check"**:
 6. If correct (and algorithm matches): mark the problem as `solved` in `problems/NNN.md`, update the concept
    level in `progress.md`, congratulate briefly, then create spaced repetition cards (see "Spaced Repetition
    Cards" section below).
-7. If incorrect: give the minimal nudge needed. Do not give hints unless asked.
+7. If incorrect: **name what is wrong** (e.g. "your loop condition is off by one", "you're not
+   updating the sum") but **never supply the fix directly** — no corrected expressions, no formulas, no
+   rewritten lines. If the user says "I don't know" in response, route them to a scaffolded sub-problem
+   that, once solved, will make the fix obvious. The user must derive every expression themselves.
 8. **Nudge toward cleaner solutions.** If the user's solution is correct but clearly more complicated than it
    needs to be (extra branches, redundant variables, special cases that a single expression would cover,
    unnecessary helper functions), say so and nudge them toward the cleaner form *before* marking solved and
@@ -201,13 +209,16 @@ When the user says **"check"**:
 
 When the user says **"I don't know"**:
 
-1. Read `main.go` first to see what the user has written so far. Use their partial attempt to identify exactly where
-   they got stuck, and tailor the sub-problem to that specific gap.
-2. Break the current problem into a simpler sub-problem targeting the identified gap.
-3. Save the sub-problem as a new entry (e.g. `003a.md`, `003b.md`).
-4. Update `current.md` to point to the sub-problem.
-5. Keep going simpler until the user can solve it.
-6. Once solved, create spaced repetition cards for the gap that was identified (see "Spaced Repetition Cards" section
+1. **Always read `main.go` first** — every single time, even on repeated "I don't know" responses during hints or
+   follow-ups, not just the first scaffolding break. The user may have edited their code between messages. Check
+   what they wrote, see if they made progress, and adjust your response to their current state rather than
+   continuing from your last message blindly.
+2. Use their partial attempt to identify exactly where they got stuck, and tailor the sub-problem to that specific gap.
+3. Break the current problem into a simpler sub-problem targeting the identified gap.
+4. Save the sub-problem as a new entry (e.g. `003a.md`, `003b.md`).
+5. Update `current.md` to point to the sub-problem.
+6. Keep going simpler until the user can solve it.
+7. Once solved, create spaced repetition cards for the gap that was identified (see "Spaced Repetition Cards" section
    below), then step back up toward the original problem.
 
 ### No giveaways in scaffolding
@@ -236,9 +247,35 @@ Rules:
   revealing more of the previous answer. The contract is: smaller problem, same
   discovery requirement.
 
+## Explanation Style
+
+When explaining a problem, concept, or algorithm — whether in a problem file, during scaffolding, or when the user asks
+"how does this work?" — **use ASCII art diagrams and step-by-step walkthroughs**:
+
+- Draw the data structure or algorithm state using ASCII art (boxes, arrows, brackets, grids).
+- Walk through the diagram step by step, showing how state changes at each iteration or operation.
+- Label each step clearly (Step 1, Step 2, ...) so the user can follow the transformation.
+- Keep diagrams compact but readable. Prefer concrete examples with real values over abstract descriptions.
+
+Example (sliding window of size 3 over `[1, 3, 5, 2, 8]`):
+
+```
+Step 1: [1  3  5] 2  8   → window sum = 9
+         ------
+Step 2:  1 [3  5  2] 8   → drop 1, add 2 → sum = 10
+            ------
+Step 3:  1  3 [5  2  8]  → drop 3, add 8 → sum = 15
+               ------
+```
+
+This applies to concept introductions (level 0), scaffolding explanations, and any time the user asks for clarification.
+
 ## Rules
 
 - Never give hints unless the user asks.
+- **Never give direct answers, fixes, or formulas.** When something is wrong, name the problem (e.g. "off by
+  one", "variable not updating") but never supply the corrected expression or code. If the user can't fix it,
+  create a sub-problem whose solution teaches them the missing piece — never just tell them the answer.
 - Never add helpful remarks or commentary unless asked.
 - Always put `main` first in every Go file.
 - Always add the problem description as a comment at the top of `main`.
