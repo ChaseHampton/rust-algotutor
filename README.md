@@ -104,6 +104,14 @@ On first run, Claude will initialize your progress file and problem directory. Y
 
 You can use `claude --dangerously-skip-permissions` to not be prompted all the time.
 
+I had good experience with `Claude Sonnet 4.6` model. Use `/model sonnet` to set it per-session, or add it as the project default by creating `.claude/settings.json`:
+
+```json
+{
+  "model": "claude-sonnet-4-6"
+}
+```
+
 The working problem is always inside `main.go`. You can validate with `go run .` before asking `claude check`.
 
 Try to make as much progress as you can before saying `I don't know`. This way Claude can better assess your gaps and
