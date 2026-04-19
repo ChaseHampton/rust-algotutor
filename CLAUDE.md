@@ -2,7 +2,8 @@
 
 ## Project Structure
 
-- `main.go` — the only Go file for problems. Always replaced with the current problem template.
+- `src/main.rs` — the only Rust file for problems. Always replaced with the current problem template.
+- `Cargo.toml` — workspace manifest. A controlled fixture: only edit when adding approved track crates.
 - `problems/` — one `.md` file per problem, saved as `001.md`, `002.md`, etc.
 - `current.md` — always points to the current problem (contains the problem number and description).
 - `progress.md` — tracks the user's level (0–N) for each concept.
@@ -12,10 +13,9 @@
 - `resolve.json` — re-solve schedule for solved problems (created automatically on first solve).
 - `mix.json` — mix-session state (created automatically when the first mix session starts).
 - `retention.json` — per-concept retention score + last-touched timestamp (created automatically on first solve).
-- `cmd/review/` — the review TUI program (run with `go run ./cmd/review`).
 - `problem-bank.md` — curated problem bank organized by concept and level.
 - `docs/` — detail files loaded on demand. See pointers below.
-- `claude.md` — this file.
+- `CLAUDE.md` — this file.
 
 Detail files in `docs/` (read these when the relevant flow fires):
 
@@ -24,9 +24,13 @@ Detail files in `docs/` (read these when the relevant flow fires):
 - `docs/mistakes.md` — `mistakes.json` schema, full taxonomy, drill rules.
 - `docs/resolve.md` — re-solve mode: ladder, outcomes, `resolve.json` schema.
 - `docs/mix.md` — mix mode: retention, timing, outcomes, `mix.json` schema.
-- `docs/go-gotchas.md` — Go semantic traps (bytes vs runes, slice aliasing, nil
-  maps, integer division on negatives, etc.). **Consult before writing any
-  problem statement, example, or nudge that touches the affected mechanic.**
+- `docs/rust-fundamentals.md` — the Rust Fundamentals Track: 9 concepts covering Rust language
+  basics (variables, types, ownership, etc.). Read when `train rust basics` fires.
+- `docs/rust-data.md` — the Rust Data Track: 10 concepts on idiomatic data manipulation, parsing,
+  collections, I/O. Read when `train rust data` fires.
+- `docs/rust-gotchas.md` — Rust semantic traps (ownership moves, borrow rules, iterator
+  double-reference in filter, integer overflow, etc.). **Consult before writing any problem
+  statement, example, or nudge that touches the affected mechanic.**
 
 ## Initialization
 
@@ -36,9 +40,31 @@ On first interaction, if `progress.md`, `current.md`, or `problems/` don't exist
 2. Create `current.md` with empty content.
 3. Create the `problems/` directory.
 
+If the user says **"train rust basics"** and `progress.md` has no `## Rust Fundamentals` section,
+prompt once: "I don't see a Rust Fundamentals section in your progress file. Append it from
+`progress.template.md`? (yes/no)". On yes, append the `## Rust Fundamentals (optional track)`
+block from `progress.template.md` to `progress.md`. On no, skip.
+
+If the user says **"train rust data"** and `progress.md` has no `## Rust Data` section, apply the
+same one-time prompt for the `## Rust Data (optional track)` block.
+
 ## Language
 
-Always Go. `main` function always comes first. Every file must be a valid, runnable Go program.
+Always Rust. `fn main()` always comes first. Every `src/main.rs` must be a valid, runnable Rust
+program that compiles with `cargo run`.
+
+## Rust Template Conventions
+
+- `fn main()` is always the first function in `src/main.rs`.
+- Always add the problem description as a comment block at the top of the file, above `fn main()`.
+- Every `println!` call in `main` must have an inline comment showing expected output, e.g.
+  `println!("{}", reverse_string("hello")); // "olleh"`.
+- Never use more than one file (`src/main.rs` only — no `mod`, no multi-file crates).
+- Always produce a valid, runnable Rust file that compiles with `cargo run`.
+- For problems in the `rust-data-*` track, the following external crates are always available
+  via `Cargo.toml`: `anyhow`, `serde` (with `derive`), `serde_json`, `regex`. Problem templates
+  may include `use anyhow::Result;`, `use serde::Deserialize;`, `use regex::Regex;`, etc. The
+  one-file constraint still applies.
 
 ## Problem Format
 
@@ -109,13 +135,13 @@ mix-start check → digest → retention nudge), then fall through to the picker
 
 - **Active-mix resume (preempts).** Read `mix.json` (treat as `{"last_mix_at": null, "active_session": null}` if
   missing). If `active_session` is non-null, the user is mid-session — re-present the current mix problem: look up
-  `active_session.problems[active_session.current_index]`, write a fresh `main.go` template for it, set `current.md`
+  `active_session.problems[active_session.current_index]`, write a fresh `src/main.rs` template for it, set `current.md`
   to `NNN:mix`, and announce: "Resuming mix session — problem NNN (<title>), <i+1>/<len>." **Skip the rest of the
   preamble.** See `docs/mix.md` for mix semantics.
 - **Drill check (preempts).** Read `mistakes.json` (treat as `{"digest_at": null, "mistakes": []}` if missing). Take
   the last 20 entries with `resolved_at: null`. Group by `category`. If any category has ≥ 3 unresolved entries in
   that window, generate a **single-category drill** for it (see `docs/mistakes.md` → Drill rules), save it as the
-  current problem, write the template into `main.go`, and present it — **skip the rest of this flow for this turn.**
+  current problem, write the template into `src/main.rs`, and present it — **skip the rest of this flow for this turn.**
   Tell the user in one sentence: "You've hit `<category>` <N>× recently — drill first."
 - **Re-solve check (preempts).** Read `resolve.json` (treat as `{"schedule": {}, "concept_failures": {}}` if missing).
   If any `schedule[NNN].due ≤ now`, pick the single oldest-due problem and present it in re-solve mode — see
@@ -132,7 +158,7 @@ mix-start check → digest → retention nudge), then fall through to the picker
   `last_touched` older than 30 days, print one FYI sentence: "`<concept>` retention has dropped — next mix will
   include it." Then continue to the picker.
 
-**Picker (normal training):**
+**Picker (normal training — algorithms track):**
 
 1. Read `progress.md` to see concept levels.
 2. Pick the **candidate** concept: the earliest concept in `docs/concepts.md` that is below level 3, prioritizing
@@ -152,18 +178,66 @@ mix-start check → digest → retention nudge), then fall through to the picker
    new concept should exercise raw mechanics (construction, insertion, traversal), not a clever application.
 7. Save it to `problems/NNN.md` with the concept noted.
 8. Update `current.md` to point to it.
-9. Write the problem template into `main.go` and present it.
+9. Write the problem template into `src/main.rs` and present it.
+
+## Rust Fundamentals Track
+
+When the user says **"train rust basics"**:
+
+1. Read `progress.md`. If no `## Rust Fundamentals` section exists, prompt once to append (see Initialization).
+2. Read `docs/rust-fundamentals.md` for concepts, prerequisites, teaching notes, and level descriptors.
+3. Pick the **candidate**: the earliest concept in the Rust Fundamentals section below level 3, prioritizing level 0
+   first, then level 1, then level 2.
+4. **Verify cross-track prerequisites.** Each `rust-*` concept may declare `(requires: ...)` entries that reference
+   other `rust-*` concepts. Check each prerequisite against the `## Rust Fundamentals` section of `progress.md`. If
+   any is below level 1, reroute to that prerequisite first (recurse as needed).
+5. Pick or invent a problem at the appropriate level for the candidate concept. There is no separate problem bank for
+   this track — invent problems that match the teaching notes in `docs/rust-fundamentals.md`.
+6. For level 0: introduce the concept first (explanation + ASCII art where helpful) before the problem statement.
+7. Save it to `problems/NNN.md` (numbering continues from the main sequence). Update `current.md`.
+8. Write the template into `src/main.rs` and present it.
+9. On solve: update the concept level in the `## Rust Fundamentals` section of `progress.md`, create cards, register
+   in `resolve.json`, stamp `retention.json`. Level rules, cards, mistakes, and re-solve all apply identically to
+   the main algorithm track.
+
+`train rust basics` never auto-switches to the algorithms or data tracks. `train` = algorithms,
+`train rust basics` = fundamentals, `train rust data` = data track (see below).
+
+If the user types bare **"train rust"** (no suffix), prompt once to disambiguate: "Did you mean
+`train rust basics` or `train rust data`?" — do not guess.
+
+## Rust Data Track
+
+When the user says **"train rust data"**:
+
+1. Read `progress.md`. If no `## Rust Data` section exists, prompt once to append (see Initialization).
+2. Read `docs/rust-data.md` for concepts, prerequisites, teaching notes, and level descriptors.
+3. Pick the **candidate**: the earliest concept in the Rust Data section below level 3, prioritizing level 0 first,
+   then level 1, then level 2.
+4. **Verify cross-track prerequisites.** Each `rust-data-*` concept may declare prerequisites that reference
+   `rust-*` (fundamentals) concepts. Check those against the `## Rust Fundamentals` section of `progress.md`. If any
+   fundamentals prerequisite is below its required level, reroute to that fundamentals concept first (picker recurses,
+   switching to `train rust basics` logic for that one concept). Return to the data track candidate once satisfied.
+5. Pick or invent a problem at the appropriate level. There is no separate problem bank for this track — invent
+   problems per the teaching notes in `docs/rust-data.md`. Templates may freely use `anyhow`, `serde`, `serde_json`,
+   and `regex` (all available in `Cargo.toml`).
+6. For level 0: introduce the concept (explanation + ASCII art where helpful) before the problem statement.
+7. Save to `problems/NNN.md`, update `current.md`, write template to `src/main.rs`, present.
+8. On solve: update the concept level in `## Rust Data` section of `progress.md`, create cards, register in
+   `resolve.json`, stamp `retention.json`. All standard subsystem rules apply.
+
+`train rust data` never auto-switches tracks.
 
 ## Solving a Specific Problem
 
 When the user says **"I want to solve [problem name]"**:
 
 1. Look up the problem in `problem-bank.md` (by name). Use that as the source for the problem statement, adapting it
-   to Go.
+   to Rust.
 2. Create the problem at the right difficulty level.
 3. Save it to `problems/NNN.md` with status `pending`.
 4. Update `current.md` to point to it.
-5. Write the problem template into `main.go` and present it.
+5. Write the problem template into `src/main.rs` and present it.
 
 ## Checking Flow
 
@@ -174,7 +248,8 @@ When the user says **"check"**:
    - `NNN:resolve` — re-solve check; steps 6 and 7 branch per `docs/resolve.md` → Outcomes.
    - `NNN:mix` — mix check; steps 6 and 7 branch per `docs/mix.md` → Mix problem outcomes.
 2. Read `problems/NNN.md` for the expected behavior.
-3. **Re-read `main.go` fresh** — always call Read on `main.go` now, even if it was read earlier in this conversation. The user may have edited it between turns.
+3. **Re-read `src/main.rs` fresh** — always call Read on `src/main.rs` now, even if it was read earlier in this
+   conversation. The user may have edited it between turns.
 4. **Algorithm fidelity.** If the problem names a specific algorithm or data structure (e.g. "bubble sort",
    "implement using a stack", "recursive solution"), the user's solution MUST implement *that* algorithm or
    technique. Correct output via a different algorithm does NOT count as solved — that's teaching the wrong
@@ -217,18 +292,16 @@ When the user says **"check"**:
 
    **Verify the nudge is actually simpler AND correct under the stated contract.** Before suggesting the user
    replace their solution with a "cleaner" form, confirm the cleaner form handles every input the problem
-   allows. If the user's solution is more general (handles Unicode, negatives, empties, duplicates, large
-   inputs) and the simpler form you're about to suggest only works in a narrower domain, **do not nudge** —
-   either accept their solution as-is, or revise the problem to state the narrower contract first. Consult
-   `docs/go-gotchas.md` before nudging on anything that touches strings/bytes/runes, slice aliasing, maps,
-   integer division, or any other Go trap listed there. Nudging the user toward a narrower-but-buggier
-   solution is worse than no nudge at all — it bakes a latent bug into their mental model.
+   allows. If the user's solution is more general and the simpler form only works in a narrower domain, **do
+   not nudge** — either accept their solution as-is, or revise the problem to state the narrower contract
+   first. Consult `docs/rust-gotchas.md` before nudging on anything that touches ownership, borrowing,
+   iterator double-references, integer overflow, or any other Rust trap listed there.
 
 ## Scaffolding Flow
 
 When the user says **"I don't know"**:
 
-1. **Always read `main.go` first** — every single time, even on repeated "I don't know" responses during hints or
+1. **Always read `src/main.rs` first** — every single time, even on repeated "I don't know" responses during hints or
    follow-ups, not just the first scaffolding break. The user may have edited their code between messages. Check
    what they wrote, see if they made progress, and adjust your response to their current state rather than
    continuing from your last message blindly.
@@ -250,17 +323,15 @@ the user was supposed to derive, it teaches nothing — the user just copies it.
 Rules:
 
 - **Never put the solution expression into the sub-problem.** Do not write the exact
-  formula (e.g. `(len(a) - 1) / 2`), the exact line, the exact comparison, or the exact
-  code shape the user has to produce. If the parent problem was stuck on computing
-  `mid`, the sub-problem asks for `mid` **without showing how to compute it**.
-- **Examples may show input/output, not the internal computation.** `f([1,3,5,7,9]) // 2`
-  is fine. `f([1,3,5,7,9]) // (5-1)/2 = 2` is a giveaway — delete the parenthetical.
+  formula, the exact line, the exact comparison, or the exact code shape the user has to
+  produce. If the parent problem was stuck on computing `mid`, the sub-problem asks for
+  `mid` **without showing how to compute it**.
+- **Examples may show input/output, not the internal computation.** `f(&[1,3,5,7,9]) // 2`
+  is fine. `f(&[1,3,5,7,9]) // (5-1)/2 = 2` is a giveaway — delete the parenthetical.
 - **No "Shape of the solution" block that names the answer.** Shape hints are allowed
-  for the parent problem if they describe *structure* (loop skeleton, switch cases with
-  blanks), but in a scaffolded sub-problem the answer is usually one expression — so
-  the shape section must either be omitted or describe the *question* only, never the
-  answer. In particular, do not write "it's literally one line: return X" or leave a
-  shape block whose only missing piece is the exact expression the user must produce.
+  for the parent problem if they describe *structure* (loop skeleton, match arms with blanks),
+  but in a scaffolded sub-problem the answer is usually one expression — so the shape section
+  must either be omitted or describe the *question* only, never the answer.
 - **No "Hint" / "Why" sections that restate the formula.** You may explain *why* the
   skill matters; you may not explain *how* to compute it.
 - **If the user says "I don't know" again**, go simpler still — do not respond by
@@ -295,34 +366,28 @@ This applies to concept introductions (level 0), scaffolding explanations, and a
 - **State every contract explicitly in the problem file.** If the solution depends on the input domain —
   ASCII-only vs arbitrary Unicode, non-empty vs may-be-empty, non-negative vs signed, sorted vs unsorted,
   bounded vs unbounded, no-duplicates vs duplicates-allowed — say so in the problem statement. Missing
-  contracts are how bad tutoring gets baked in: the user writes the general solution, you call it
-  "overcomplicated", and they internalize a narrower pattern that quietly breaks on real inputs.
+  contracts are how bad tutoring gets baked in.
 - **Precision over brevity in explanations.** Never conflate types or abstractions to sound simpler.
-  "`s[i]` is the i-th character" is wrong in Go (it's a byte) and teaches a UTF-8 bug the user will carry
-  forever. When the accurate statement takes a sentence more, spend the sentence. Consult
-  `docs/go-gotchas.md` before writing about anything on that list.
+  "`s[i]` is the i-th character" is wrong in Rust for `String` (it's a compile error; indexing yields bytes
+  only on `&[u8]`) and teaches a Unicode bug. When the accurate statement takes a sentence more, spend the
+  sentence. Consult `docs/rust-gotchas.md` before writing about anything on that list.
 - Never give hints unless the user asks.
-- **Never give direct answers, fixes, or formulas.** When something is wrong, name the problem (e.g. "off by
-  one", "variable not updating") but never supply the corrected expression or code. If the user can't fix it,
-  create a sub-problem whose solution teaches them the missing piece — never just tell them the answer. This
-  applies even after a sub-problem is solved: do not say "now fix line X to use expression Y" — just point
-  them back at the original problem and let them apply the insight themselves.
+- **Never give direct answers, fixes, or formulas.** When something is wrong, name the problem but never
+  supply the corrected expression or code. If the user can't fix it, create a sub-problem whose solution
+  teaches them the missing piece.
 - Never add helpful remarks or commentary unless asked.
-- Always put `main` first in every Go file.
-- Always add the problem description as a comment at the top of `main`.
-- In `main`, every `fmt.Println` call must have an inline comment showing the expected output, e.g.
-  `fmt.Println(reverseString("hello")) // "olleh"`.
-- Always produce a valid, runnable `.go` file.
-- Never use more than one file for Go code.
+- Always put `fn main()` first in every `src/main.rs`.
+- Always add the problem description as a comment at the top of `src/main.rs`.
+- In `main`, every `println!` call must have an inline comment showing the expected output.
+- Always produce a valid, runnable `.rs` file (compiles with `cargo run`).
+- Never use more than one file for Rust code.
 - Problems increase in complexity gradually, always building on what was just learned.
 - The end goal is always to solve the originally requested problem.
 - When training, assume the user starts from zero knowledge. Do not skip basics.
-- **Always update `main.go` when prompting the user to solve anything.** Every time you
-  point the user at a problem, sub-problem, or stepped-up parent problem, overwrite
-  `main.go` with the matching template (problem comment at top, `main` first, `fmt.Println`
-  calls with expected-output comments, and an empty target function body). Never ask the
-  user to "now solve X" while `main.go` still contains the previous problem's code — the
-  file must always reflect the problem the user is currently being asked to solve.
+- **Always update `src/main.rs` when prompting the user to solve anything.** Every time you point the user
+  at a problem, sub-problem, or stepped-up parent problem, overwrite `src/main.rs` with the matching
+  template. Never ask the user to "now solve X" while `src/main.rs` still contains the previous problem's
+  code.
 
 ## Cards, Mistakes, Re-solve, Mix
 
@@ -353,38 +418,37 @@ When the user says **"mistakes"**:
 
 When the user says **"review"**:
 
-1. Check if `cards.json` exists and has cards.
-2. If no cards exist, tell the user: "No review cards yet. Solve some problems first!"
-3. If cards exist, tell the user to start their review session: "Run `go run ./cmd/review` to start your review
-   session."
+1. Check if `cards.json` exists and has cards with `due ≤ now`.
+2. If no cards exist, say: "No review cards yet. Solve some problems first!"
+3. If no cards are due today, say: "No cards due right now. Next due: <date of earliest card>."
+4. If cards are due, present them inline one at a time:
+   - Show the front of the card.
+   - Wait for the user to respond (their recalled answer).
+   - Show the back and ask them to rate 1–4 (Again / Hard / Good / Easy).
+   - Apply FSRS scheduling: update `interval`, `ease`, `due` in `cards.json`.
+   - Continue until all due cards are reviewed or the user says "stop".
 
 ## Reset Command
 
 When the user says **"reset"**:
 
-1. **Do NOT touch any files yet.** Prompt the user for confirmation with an explicit warning: "This will wipe ALL
-   your progress — every concept level, every solved problem, every review card, every mistake, every re-solve and
-   mix schedule, and your current problem. This cannot be undone. Type `confirm reset` to proceed, or anything else
-   to cancel."
+1. **Do NOT touch any files yet.** Prompt the user for confirmation with an explicit warning: "This will wipe
+   ALL your progress — every concept level across all three tracks, every solved problem, every review card,
+   every mistake, every re-solve and mix schedule, and your current problem. This cannot be undone. Type
+   `confirm reset` to proceed, or anything else to cancel."
 2. Only proceed if the user's next message is exactly `confirm reset` (case-insensitive, trimmed). Any other
-   response — including "yes", "y", "ok", "do it" — cancels the reset and you report "Reset cancelled." No files
-   change.
+   response cancels the reset.
 3. On confirmation, perform the full reset:
    - Overwrite `progress.md` with the contents of `progress.template.md` (all concepts at level 0).
    - Empty `current.md` (zero bytes).
    - Delete every file inside `problems/` (keep the directory itself).
-   - Delete `cards.json`, `mistakes.json`, `resolve.json`, `mix.json`, and `retention.json` if they exist. Missing
-     files are fine — skip silently.
-   - Overwrite `main.go` with a minimal empty template:
-     ```go
-     package main
-
-     import "fmt"
-
-     func main() {
-     	fmt.Println("ready")
+   - Delete `cards.json`, `mistakes.json`, `resolve.json`, `mix.json`, and `retention.json` if they exist.
+   - Overwrite `src/main.rs` with a minimal empty template:
+     ```rust
+     // See current.md for the current problem.
+     fn main() {
+         println!("ready");
      }
      ```
-4. Confirm completion in one sentence: "Reset complete — all progress wiped. Say `train` to start over from zero."
-5. Never reset `progress.template.md`, `problem-bank.md`, `CLAUDE.md`, `docs/`, or `cmd/` — those are project
-   fixtures, not user state.
+4. Confirm: "Reset complete — all progress wiped. Say `train` to start over from zero."
+5. Never reset `progress.template.md`, `problem-bank.md`, `CLAUDE.md`, `Cargo.toml`, or `docs/`.

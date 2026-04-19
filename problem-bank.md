@@ -1,7 +1,7 @@
 # Problem Bank
 
 Curated problems organized by concept and difficulty.
-When training, prefer problems from this bank at the appropriate level. Adapt the problem statement to Go.
+When training, prefer problems from this bank at the appropriate level. Adapt the problem statement to Rust.
 
 **Level mapping:**
 - Level 0 → Easy problems

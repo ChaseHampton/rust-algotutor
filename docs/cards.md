@@ -1,7 +1,7 @@
 # Spaced Repetition Cards
 
 During practice, create review cards that capture what the user just learned. Cards are stored in `cards.json` and
-reviewed via `go run ./cmd/review`.
+surfaced by the `review` command.
 
 ## When to Create Cards
 
@@ -12,7 +12,7 @@ reviewed via `go run ./cmd/review`.
 ## How to Create Cards
 
 1. Read `cards.json` (if it exists). If it doesn't exist, start with `{"cards": []}`.
-2. Identify 1–5 atomic things the user learned: algorithmic patterns, Go syntax, data structure properties, prerequisite
+2. Identify 1–5 atomic things the user learned: algorithmic patterns, Rust syntax, data structure properties, prerequisite
    concepts.
 3. Formulate each card following the rules below.
 4. Append the new card objects to the `cards` array.
@@ -54,8 +54,8 @@ reviewed via `go run ./cmd/review`.
   variables, restatements of the concept's tagline, and enumeration lists.
 - **One fact per card.** Never combine multiple facts. Split "What is a stack and how do you push?" into two cards.
 - **Minimum information.** Keep both sides as short as possible while remaining unambiguous.
-- **Cloze deletions for code.** Use fill-in-the-blank for syntax: front = "Pop from a Go slice stack:
-  `top := s[len(s)-1]; s = s[:___]`", back = "`len(s)-1`".
+- **Cloze deletions for code.** Use fill-in-the-blank for syntax: front = "Pop from a Rust Vec stack:
+  `let top = s.___(); `", back = "`pop().unwrap()`".
 - **No lists or enumerations.** Never ask "Name the 3 properties of X." Make one card per property.
 - **Optimize wording.** Remove unnecessary words. Front: "Stack: LIFO or FIFO?" Back: "LIFO".
 - **Context cues.** The `concept` field provides context. You can also prefix the front with a topic tag if needed.
@@ -70,13 +70,13 @@ reviewed via `go run ./cmd/review`.
 ```json
 [
   {
-    "front": "In Go, how do you add an element to a slice-based stack?",
-    "back": "`stack = append(stack, value)`",
+    "front": "In Rust, how do you push an element onto a Vec-based stack?",
+    "back": "`stack.push(value)`",
     "concept": "stacks"
   },
   {
-    "front": "Pop from a Go slice stack: `top := s[len(s)-1]; s = s[:___]`",
-    "back": "`len(s)-1`",
+    "front": "Pop from a Rust Vec stack and get the value: `let top = stack.___();`",
+    "back": "`pop().unwrap()` (or `pop()?` if in a Result context)",
     "concept": "stacks"
   },
   {

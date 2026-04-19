@@ -75,13 +75,13 @@ similar notes three times, promote it into a new category and update this list.
 - `negative-input-missed` — algorithm assumed non-negative input.
 - `overflow-missed` — didn't consider integer overflow for large inputs.
 
-**Go mechanics**
+**Rust mechanics**
 
-- `pointer-vs-value-receiver` — mutation via value receiver, or pointer where unnecessary.
-- `slice-aliasing` — two slices share backing array; modification leaks.
-- `map-iteration-order` — assumed deterministic map iteration order.
-- `nil-map-write` — wrote to an unallocated map.
-- `shadowed-variable` — `:=` inside a block shadowed an outer variable.
+- `borrow-conflict` — used a value after moving it, or held a mutable + immutable borrow simultaneously.
+- `type-mismatch` — passed owned value where reference expected, or vice versa.
+- `map-iteration-order` — assumed deterministic HashMap iteration order.
+- `unwrap-on-none` — called `.unwrap()` / `.expect()` on a None or Err that could occur.
+- `shadowed-variable` — introduced a new binding with `let` that shadowed an outer variable unintentionally.
 
 **Algorithmic**
 
@@ -92,7 +92,7 @@ similar notes three times, promote it into a new category and update this list.
 **Other**
 
 - `misread-problem` — solved a different problem than the one stated.
-- `syntax` — persistent Go syntax errors (not typos); log only on repeat across sessions.
+- `syntax` — persistent Rust syntax errors (not typos); log only on repeat across sessions.
 - `other` — last resort.
 
 ## When to log

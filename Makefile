@@ -1,4 +1,16 @@
-.PHONY: review
+.PHONY: fmt lint test run check
 
-review:
-	go run ./cmd/review
+fmt:
+	cargo fmt
+
+lint:
+	cargo clippy
+
+test:
+	cargo test
+
+run:
+	cargo run
+
+check:
+	cargo check

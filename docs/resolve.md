@@ -88,8 +88,8 @@ Run as the **Re-solve check** step of the Training Flow preamble (after drill ch
 1. Read `resolve.json` (treat as empty if missing). Find the single entry with the earliest `due`. If `due > now`, do
    nothing — fall through to digest/picker.
 2. Otherwise, let `NNN` be that entry's problem number. Read `problems/NNN.md` for the statement.
-3. Write a **fresh `main.go` template**: problem description as a comment at the top, `main` first with
-   `fmt.Println(...)` calls that have inline expected-output comments, and an empty target function body. **Do not
+3. Write a **fresh `src/main.rs` template**: problem description as a comment at the top, `fn main()` first with
+   `println!(...)` calls that have inline expected-output comments, and an empty target function body. **Do not
    include the user's prior solution.** If you don't have the prior solution in context, good — you shouldn't use it
    even if you did.
 4. Do NOT re-read or re-present scaffold sub-problems (`NNNa.md`, `NNNb.md`). Those were one-shot aids for the first
@@ -120,7 +120,7 @@ Always append to `history`:
 {"at": "<now, RFC3339>", "outcome": "clean" | "recovered" | "failed"}
 ```
 
-After writing `resolve.json`, reset `current.md` to empty. Leave `main.go` alone — the user may want to look at their
+After writing `resolve.json`, reset `current.md` to empty. Leave `src/main.rs` alone — the user may want to look at their
 own work before running the next `train`.
 
 ## Mistake tracking on re-solve

@@ -105,7 +105,7 @@ If any condition fails, skip to digest. Do NOT start a mix session.
    }
    ```
 6. **Set `current.md`** to `<n1>:mix`.
-7. **Write a fresh `main.go` template** for problem `<n1>`.
+7. **Write a fresh `src/main.rs` template** for problem `<n1>`.
 8. **Announce** in one sentence: "Mix of 3: `<c1>`, `<c2>`, `<c3>` — cold concepts surfacing. First up: problem `<n1>`
    (<title>)."
 
@@ -141,7 +141,7 @@ After classifying a mix problem's outcome:
 - If `current_index + 1 < len(problems)`:
   - Increment `current_index`.
   - Set `current.md` to `<next_problem>:mix`.
-  - Write a fresh `main.go` template for the next problem.
+  - Write a fresh `src/main.rs` template for the next problem.
   - Announce: "Next in mix: `<concept>` — problem `<num>` (<title>), <i+1>/<len>."
 - Else (last problem in the session):
   - Set `mix.json.last_mix_at` = now.
